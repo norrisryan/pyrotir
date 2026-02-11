@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rotir-jax"
+version = "0.1.0"
+description = "Python/JAX port of ROTIR for stellar surface reconstruction from optical interferometry"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "ROTIR JAX Contributors"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "jax>=0.4.0",
+    "jaxlib>=0.4.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "healpy>=1.16.0",
+    "astropy>=5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "matplotlib>=3.7.0",
+]
+gpu = [
+    "jax[cuda12]>=0.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rotir_jax*"]
