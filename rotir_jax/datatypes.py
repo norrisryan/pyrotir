@@ -171,6 +171,27 @@ class StellarGeometry:
     polyflux: Optional[jnp.ndarray] = None  # (nvis,)
     polyft: Optional[jnp.ndarray] = None  # (nuv, nvis) complex64
 
+    # Compatibility properties for compute_observables
+    @property
+    def x_sky(self) -> jnp.ndarray:
+        """Alias for projx (x-coords on sky plane)."""
+        # Need to expand from (nvis, 4) to (npix, 4) with zeros for invisible
+        x_full = jnp.zeros((self.npix, 4))
+        return x_full.at[self.visible_idx].set(self.projx)
+
+    @property
+    def y_sky(self) -> jnp.ndarray:
+        """Alias for projy (y-coords on sky plane)."""
+        # Need to expand from (nvis, 4) to (npix, 4) with zeros for invisible
+        y_full = jnp.zeros((self.npix, 4))
+        return y_full.at[self.visible_idx].set(self.projy)
+
+    @property
+    def visible_mask(self) -> jnp.ndarray:
+        """Convert visible_idx to boolean mask."""
+        mask = jnp.zeros(self.npix, dtype=bool)
+        return mask.at[self.visible_idx].set(True)
+
 
 # ============================================================
 # Interferometric data
@@ -319,3 +340,55 @@ class Star:
 
     # Limb darkening
     ld_coeffs: jnp.ndarray = field(default_factory=lambda: jnp.array([0.0, 0.0]))
+
+    def to_geometry(self) -> StellarGeometry:
+        """Convert Star to StellarGeometry for forward model.
+
+        Returns:
+            StellarGeometry with minimal fields needed for compute_observables
+
+        Notes:
+            This reconstructs vertex coordinates from tessellation and rotation.
+            Only creates the minimal geometry needed - no polyft matrices.
+        """
+        from rotir_jax.geometry.base import rotation_matrix, apply_rotation
+
+        # Reconstruct radius from diameter
+        radius = self.diameter / 2.0
+
+        # Scale tessellation to stellar radius
+        vertices_xyz = radius * jnp.array(self.tess.unit_xyz)
+
+        # Apply rotation
+        rot_mat = rotation_matrix(self.inclination, 0.0, self.orientation)
+        vertices_xyz_rot = apply_rotation(vertices_xyz, rot_mat)
+
+        # Get visible pixel indices
+        visible_idx = jnp.where(self.visible)[0]
+        nvis = len(visible_idx)
+
+        # Extract projected coordinates for visible pixels (first 4 vertices)
+        projx = vertices_xyz_rot[visible_idx, :4, 0]  # (nvis, 4)
+        projy = vertices_xyz_rot[visible_idx, :4, 1]  # (nvis, 4)
+
+        # Compute normals (approximate with z-direction for now)
+        normals = jnp.zeros((self.tess.npix, 3))
+        normals = normals.at[:, 2].set(1.0)
+
+        # Compute limb darkening (simplified - can enhance later)
+        mu = jnp.clip(self.z / radius, 0.0, 1.0)
+        ldmap = 1.0 - self.ld_coeffs[0] * (1 - mu) - self.ld_coeffs[1] * (1 - mu)**2
+
+        return StellarGeometry(
+            surface_type=0,  # Simple sphere
+            npix=self.tess.npix,
+            nvis=nvis,
+            vertices_xyz=vertices_xyz_rot,
+            vertices_spherical=self.tess.unit_spherical,
+            normals=normals,
+            visible_idx=visible_idx,
+            projx=projx,
+            projy=projy,
+            ldmap=ldmap,
+            epoch=0.0,  # Single epoch for now
+        )
