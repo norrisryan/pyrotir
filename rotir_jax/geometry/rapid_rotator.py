@@ -21,7 +21,7 @@ from typing import Tuple, Optional
 
 import sys
 sys.path.append('..')
-from rotir_jax.datatypes import Tessellation, StarGeometry
+from rotir_jax.datatypes import Tessellation, StellarGeometry
 
 
 def f_rapid_rot(x: jnp.ndarray) -> jnp.ndarray:
@@ -189,7 +189,7 @@ def calc_rotspin(
 
 def temperature_map_vonZeipel(
     tess: Tessellation,
-    geom: StarGeometry,
+    geom: StellarGeometry,
     tpole: float,
     rpole: float,
     frac_escapevel: float,
@@ -211,7 +211,7 @@ def temperature_map_vonZeipel(
 
     Args:
         tess: Tessellation with vertices
-        geom: StarGeometry with spherical coordinates
+        geom: StellarGeometry with spherical coordinates
         tpole: Effective temperature at pole (K)
         rpole: Polar radius (any units, consistent with GM)
         frac_escapevel: ω/ω_crit, fractional critical velocity
@@ -352,7 +352,7 @@ def create_rapid_rotator_star(
     PA: float = 0.0,
     obliq: float = 0.0,
     wavelength: float = 1.65e-6,
-) -> Tuple[StarGeometry, jnp.ndarray]:
+) -> Tuple[StellarGeometry, jnp.ndarray]:
     """Create rapid rotator star with gravity darkening.
 
     Convenience function that combines:
@@ -372,7 +372,7 @@ def create_rapid_rotator_star(
         wavelength: Observation wavelength (meters)
 
     Returns:
-        geom: StarGeometry with sky projection
+        geom: StellarGeometry with sky projection
         intensity_map: (npix,) surface brightness including gravity darkening
 
     Notes:

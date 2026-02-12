@@ -17,7 +17,7 @@ from typing import Tuple
 
 import sys
 sys.path.append('..')
-from rotir_jax.datatypes import StarGeometry
+from rotir_jax.datatypes import StellarGeometry
 
 
 def polygon_area(x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
@@ -245,13 +245,13 @@ def setup_polyft_matrix(
 
 
 def compute_polyflux(
-    geom: StarGeometry,
+    geom: StellarGeometry,
     intensity: jnp.ndarray,
 ) -> jnp.ndarray:
     """Compute flux from each pixel (area * intensity).
 
     Args:
-        geom: StarGeometry with x_sky, y_sky, visible_mask
+        geom: StellarGeometry with x_sky, y_sky, visible_mask
         intensity: (npix,) surface intensity map
 
     Returns:

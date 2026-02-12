@@ -14,7 +14,7 @@ from typing import Tuple, Optional, Dict
 
 import sys
 sys.path.append('..')
-from rotir_jax.datatypes import StarGeometry, OIData
+from rotir_jax.datatypes import StellarGeometry, OIData
 from rotir_jax.forward_model.polyft import (
     polygon_fourier_transform,
     setup_polyft_matrix,
@@ -27,7 +27,7 @@ from rotir_jax.forward_model.polyft import (
 
 def compute_observables(
     image: jnp.ndarray,
-    geom: StarGeometry,
+    geom: StellarGeometry,
     oi_data: OIData,
     polyft_matrix: Optional[jnp.ndarray] = None,
 ) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
@@ -38,7 +38,7 @@ def compute_observables(
 
     Args:
         image: (npix,) surface brightness/intensity map
-        geom: StarGeometry with sky projection and visibility mask
+        geom: StellarGeometry with sky projection and visibility mask
         oi_data: OIData with UV coordinates and baseline indices
         polyft_matrix: Optional precomputed (nuv, npix) polygon FT matrix
 
@@ -97,7 +97,7 @@ def compute_observables(
 
 def compute_chi2(
     image: jnp.ndarray,
-    geom: StarGeometry,
+    geom: StellarGeometry,
     oi_data: OIData,
     polyft_matrix: Optional[jnp.ndarray] = None,
     return_components: bool = False,
@@ -114,7 +114,7 @@ def compute_chi2(
 
     Args:
         image: (npix,) surface brightness map
-        geom: StarGeometry
+        geom: StellarGeometry
         oi_data: OIData with measurements and errors
         polyft_matrix: Optional precomputed FT matrix
         return_components: If True, return (chi2_total, chi2_v2, chi2_t3amp, chi2_t3phi)
@@ -168,7 +168,7 @@ def compute_chi2(
 
 def compute_chi2_gradient(
     image: jnp.ndarray,
-    geom: StarGeometry,
+    geom: StellarGeometry,
     oi_data: OIData,
     polyft_matrix: jnp.ndarray,
 ) -> Tuple[jnp.ndarray, jnp.ndarray]:
@@ -178,7 +178,7 @@ def compute_chi2_gradient(
 
     Args:
         image: (npix,) surface brightness map
-        geom: StarGeometry
+        geom: StellarGeometry
         oi_data: OIData
         polyft_matrix: (nuv, npix) precomputed FT matrix
 
@@ -202,7 +202,7 @@ def compute_chi2_gradient(
 
 
 def create_forward_model(
-    geom: StarGeometry,
+    geom: StellarGeometry,
     oi_data: OIData,
 ) -> Dict:
     """Create forward model with precomputed matrices.
@@ -211,13 +211,13 @@ def create_forward_model(
     evaluation during optimization.
 
     Args:
-        geom: StarGeometry with sky projection
+        geom: StellarGeometry with sky projection
         oi_data: OIData with UV coordinates
 
     Returns:
         forward_model: Dictionary with:
             - polyft_matrix: (nuv, npix) precomputed polygon FT matrix
-            - geom: StarGeometry
+            - geom: StellarGeometry
             - oi_data: OIData
             - compute_chi2: Function image → chi2
             - compute_observables: Function image → (v2, t3amp, t3phi)
@@ -259,7 +259,7 @@ def create_forward_model(
 
 def compute_residuals(
     image: jnp.ndarray,
-    geom: StarGeometry,
+    geom: StellarGeometry,
     oi_data: OIData,
     polyft_matrix: Optional[jnp.ndarray] = None,
 ) -> Dict[str, jnp.ndarray]:
@@ -269,7 +269,7 @@ def compute_residuals(
 
     Args:
         image: (npix,) surface brightness map
-        geom: StarGeometry
+        geom: StellarGeometry
         oi_data: OIData
         polyft_matrix: Optional precomputed FT matrix
 
@@ -350,7 +350,7 @@ def compute_chi2_multiepoch(
 
     Args:
         images: List of (npix,) brightness maps for each epoch
-        geoms: List of StarGeometry for each epoch
+        geoms: List of StellarGeometry for each epoch
         oi_datas: List of OIData for each epoch
         polyft_matrices: Optional list of precomputed FT matrices
         epoch_weights: Optional (nepochs,) weights for each epoch

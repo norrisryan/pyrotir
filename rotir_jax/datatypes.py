@@ -237,3 +237,46 @@ class OIData:
     # Metadata
     mean_mjd: float = 0.0
     filename: str = ""
+
+
+# ============================================================
+# Star object (combines geometry + intensities for reconstruction)
+# ============================================================
+
+@dataclass
+class Star:
+    """Star object for image reconstruction.
+
+    Combines tessellation, geometry, and surface intensities.
+    Used as input to reconstruction algorithms.
+
+    Arrays:
+        theta: (npix,) colatitude of pixel centers
+        phi: (npix,) longitude of pixel centers
+        x, y, z: (npix,) Cartesian coordinates on sky (mas)
+        visible: (npix,) boolean mask of visible pixels
+        intensities: (npix,) surface intensity map (normalized)
+        ld_coeffs: limb darkening coefficients [u1, u2]
+    """
+    tess: 'Tessellation'  # HEALPix tessellation
+
+    # Spherical coordinates
+    theta: jnp.ndarray  # (npix,) colatitude [0, pi]
+    phi: jnp.ndarray    # (npix,) longitude [0, 2*pi]
+
+    # Cartesian coordinates (rotated, projected)
+    x: jnp.ndarray  # (npix,) mas
+    y: jnp.ndarray  # (npix,) mas
+    z: jnp.ndarray  # (npix,) mas
+
+    # Visibility and intensities
+    visible: jnp.ndarray      # (npix,) bool
+    intensities: jnp.ndarray  # (npix,) normalized [0, 1]
+
+    # Geometry parameters
+    diameter: float  # mas
+    inclination: float  # degrees
+    orientation: float  # degrees
+
+    # Limb darkening
+    ld_coeffs: jnp.ndarray = field(default_factory=lambda: jnp.array([0.0, 0.0]))
