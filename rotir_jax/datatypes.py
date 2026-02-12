@@ -256,7 +256,7 @@ class OIData:
         """V baseline coordinate (north-south) in meters."""
         return self.uv[1, :]
 
-    # Compatibility aliases for notebook (vis2 -> v2)
+    # Compatibility aliases for notebook and reconstruction code
     @property
     def vis2(self) -> jnp.ndarray:
         """Alias for v2 (squared visibilities)."""
@@ -266,6 +266,16 @@ class OIData:
     def vis2_err(self) -> jnp.ndarray:
         """Alias for v2_err (squared visibility errors)."""
         return self.v2_err
+
+    @property
+    def nt3amp(self) -> int:
+        """Alias for nt3 (number of T3 amplitudes)."""
+        return self.nt3
+
+    @property
+    def nt3phi(self) -> int:
+        """Alias for nt3 (number of T3 phases)."""
+        return self.nt3
 
 
 # ============================================================
