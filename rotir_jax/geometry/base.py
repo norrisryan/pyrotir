@@ -14,7 +14,7 @@ from typing import Tuple, Optional
 
 import sys
 sys.path.append('..')
-from rotir_jax.datatypes import Tessellation, StarGeometry
+from rotir_jax.datatypes import Tessellation, StellarGeometry
 
 
 def rotation_matrix(inc: float, PA: float, obliq: float) -> jnp.ndarray:
@@ -146,7 +146,7 @@ def create_star(
     inc: float,
     PA: float,
     obliq: float = 0.0,
-) -> StarGeometry:
+) -> StellarGeometry:
     """Create stellar geometry for a spherical star.
 
     This is the simplified version for Step 3 - just handles rotation of
@@ -160,7 +160,7 @@ def create_star(
         obliq: Obliquity/rotation angle in degrees (default 0)
 
     Returns:
-        StarGeometry with rotated vertices, visibility mask, sky projection
+        StellarGeometry with rotated vertices, visibility mask, sky projection
 
     Notes:
         - For spheres only (surface_type = 0)
@@ -207,7 +207,7 @@ def create_star(
     # Scale by radius^2 and foreshortening
     pixel_areas = pixel_area_unit * (radius ** 2) * mu
 
-    return StarGeometry(
+    return StellarGeometry(
         npix=int(npix),
         nside=int(tessellation.nside),
         vertices_xyz=np.array(vertices_xyz_rot, dtype=np.float32),

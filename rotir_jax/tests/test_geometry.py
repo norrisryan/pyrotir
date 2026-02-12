@@ -4,7 +4,7 @@ Tests verify:
 1. Rotation matrix properties (orthogonality, determinant)
 2. Visibility determination
 3. Sky plane projection
-4. StarGeometry creation
+4. StellarGeometry creation
 """
 
 import numpy as np
