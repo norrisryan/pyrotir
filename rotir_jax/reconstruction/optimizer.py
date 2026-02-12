@@ -275,7 +275,7 @@ class StellarImageReconstructor:
             - Preserves geometry, visible mask, etc.
         """
         # Create new star with updated intensities
-        # This is a simplified version - actual implementation depends on Star structure
+        # Preserve all geometry and only update intensities
         star_new = Star(
             tess=self.star.tess,
             theta=self.star.theta,
@@ -285,6 +285,9 @@ class StellarImageReconstructor:
             z=self.star.z,
             visible=self.star.visible,
             intensities=x,  # Updated intensities
+            diameter=self.star.diameter,
+            inclination=self.star.inclination,
+            orientation=self.star.orientation,
             ld_coeffs=self.star.ld_coeffs,
         )
 
