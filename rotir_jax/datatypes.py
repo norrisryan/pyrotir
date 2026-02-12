@@ -234,12 +234,16 @@ class OIData:
     indx_t3_2: jnp.ndarray  # (nt3,) int
     indx_t3_3: jnp.ndarray  # (nt3,) int
 
-    # Wavelengths (meters)
+    # Wavelengths (meters) - MUST come before fields with defaults
     wavelengths: jnp.ndarray  # (nuv,) wavelength for each UV point
 
-    # Metadata
+    # Metadata (fields with defaults must come last)
     mean_mjd: float = 0.0
     filename: str = ""
+
+    def __post_init__(self):
+        """Dataclass post-initialization for property setup."""
+        pass
 
     @property
     def u(self) -> jnp.ndarray:
