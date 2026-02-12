@@ -234,13 +234,18 @@ class OIData:
     indx_t3_2: jnp.ndarray  # (nt3,) int
     indx_t3_3: jnp.ndarray  # (nt3,) int
 
-    # Wavelengths (meters)
+    # Wavelengths (meters) - MUST come before fields with defaults
     wavelengths: jnp.ndarray  # (nuv,) wavelength for each UV point
 
-    # Metadata
+    # Metadata (fields with defaults must come last)
     mean_mjd: float = 0.0
     filename: str = ""
 
+    def __post_init__(self):
+        """Dataclass post-initialization for property setup."""
+        pass
+
+    # Baseline coordinate properties
     @property
     def u(self) -> jnp.ndarray:
         """U baseline coordinate (east-west) in meters."""
@@ -250,6 +255,27 @@ class OIData:
     def v(self) -> jnp.ndarray:
         """V baseline coordinate (north-south) in meters."""
         return self.uv[1, :]
+
+    # Compatibility aliases for notebook and reconstruction code
+    @property
+    def vis2(self) -> jnp.ndarray:
+        """Alias for v2 (squared visibilities)."""
+        return self.v2
+
+    @property
+    def vis2_err(self) -> jnp.ndarray:
+        """Alias for v2_err (squared visibility errors)."""
+        return self.v2_err
+
+    @property
+    def nt3amp(self) -> int:
+        """Alias for nt3 (number of T3 amplitudes)."""
+        return self.nt3
+
+    @property
+    def nt3phi(self) -> int:
+        """Alias for nt3 (number of T3 phases)."""
+        return self.nt3
 
 
 # ============================================================
