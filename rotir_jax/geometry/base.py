@@ -14,7 +14,7 @@ from typing import Tuple, Optional
 
 import sys
 sys.path.append('..')
-from rotir_jax.datatypes import Tessellation, StellarGeometry
+from rotir_jax.datatypes import Tessellation, StellarGeometry, Star
 
 
 def rotation_matrix(inc: float, PA: float, obliq: float) -> jnp.ndarray:
@@ -141,38 +141,50 @@ def sky_plane_projection(xyz_rot: jnp.ndarray) -> Tuple[jnp.ndarray, jnp.ndarray
 
 
 def create_star(
-    tessellation: Tessellation,
-    radius: float,
-    inc: float,
-    PA: float,
-    obliq: float = 0.0,
-) -> StellarGeometry:
-    """Create stellar geometry for a spherical star.
+    tess: Tessellation,
+    inclination: float,
+    orientation: float,
+    intensities: jnp.ndarray,
+    diameter: float,
+    ld_coeffs: Optional[jnp.ndarray] = None,
+) -> Star:
+    """Create a Star object for image reconstruction.
 
-    This is the simplified version for Step 3 - just handles rotation of
-    spherical stars. Later steps will add rapid rotator and Roche geometry.
+    This is the main API for creating stars in the reconstruction workflow.
 
     Args:
-        tessellation: HEALPix tessellation of unit sphere
-        radius: Stellar radius (in solar radii or arbitrary units)
-        inc: Inclination in degrees
-        PA: Position angle in degrees
-        obliq: Obliquity/rotation angle in degrees (default 0)
+        tess: HEALPix tessellation of unit sphere
+        inclination: Inclination in degrees (0 = pole-on, 90 = edge-on)
+        orientation: Orientation/rotation angle in degrees
+        intensities: (npix,) surface intensity map (normalized [0, 1])
+        diameter: Stellar diameter in mas
+        ld_coeffs: Optional limb darkening coefficients [u1, u2]
 
     Returns:
-        StellarGeometry with rotated vertices, visibility mask, sky projection
+        Star object with geometry and intensities
 
-    Notes:
-        - For spheres only (surface_type = 0)
-        - Matches geometry.jl lines 238-258 (rotate_single_star)
-        - Later: add rapid rotator (surface_type = 2), Roche (surface_type = 3)
+    Example:
+        >>> tess = tessellation_healpix(n=4)
+        >>> intensities = jnp.ones(tess.npix)  # Uniform
+        >>> star = create_star(
+        ...     tess=tess,
+        ...     inclination=60.0,
+        ...     orientation=0.0,
+        ...     intensities=intensities,
+        ...     diameter=44.0,  # mas
+        ... )
     """
+    if ld_coeffs is None:
+        ld_coeffs = jnp.array([0.0, 0.0])
+
+    # Compute radius from diameter
+    radius = diameter / 2.0
+
     # Step 1: Scale tessellation to stellar radius
-    # vertices_xyz = radius * tessellation.unit_xyz
-    vertices_xyz = radius * jnp.array(tessellation.unit_xyz)
+    vertices_xyz = radius * jnp.array(tess.unit_xyz)
 
     # Step 2: Compute rotation matrix
-    rot_mat = rotation_matrix(inc, PA, obliq)
+    rot_mat = rotation_matrix(inclination, 0.0, orientation)  # PA=0 for now
 
     # Step 3: Apply rotation
     vertices_xyz_rot = apply_rotation(vertices_xyz, rot_mat)
@@ -180,42 +192,30 @@ def create_star(
     # Step 4: Determine visibility
     vis_mask = visible_mask(vertices_xyz_rot)
 
-    # Step 5: Project onto sky plane
-    x_sky, y_sky = sky_plane_projection(vertices_xyz_rot)
-
-    # Step 6: Compute projected areas (for flux calculations)
-    # For spheres, the projected area = actual area * cos(angle to observer)
-    # The angle to observer is given by the z-component of surface normal
-    # For a sphere, surface normal at center = normalized position vector
+    # Step 5: Extract pixel centers
     centers_xyz_rot = vertices_xyz_rot[:, 4, :]  # (npix, 3)
-    surface_normals = centers_xyz_rot / jnp.linalg.norm(
-        centers_xyz_rot, axis=1, keepdims=True
-    )
+    x = centers_xyz_rot[:, 0]
+    y = centers_xyz_rot[:, 1]
+    z = centers_xyz_rot[:, 2]
 
-    # Foreshortening factor = dot product with z-axis = normal_z
-    mu = surface_normals[:, 2]  # Cosine of angle to line of sight
+    # Step 6: Get spherical coordinates from tessellation
+    # Use the center point (index 4) from unit_spherical
+    theta = jnp.array(tess.unit_spherical[:, 4, 1])  # colatitude
+    phi = jnp.array(tess.unit_spherical[:, 4, 2])    # longitude
 
-    # Clip to avoid negative areas for back-facing pixels
-    mu = jnp.maximum(mu, 0.0)
-
-    # Compute pixel areas on unit sphere
-    # For HEALPix, all pixels have equal area on unit sphere
-    npix = tessellation.npix
-    unit_sphere_area = 4 * jnp.pi
-    pixel_area_unit = unit_sphere_area / npix
-
-    # Scale by radius^2 and foreshortening
-    pixel_areas = pixel_area_unit * (radius ** 2) * mu
-
-    return StellarGeometry(
-        npix=int(npix),
-        nside=int(tessellation.nside),
-        vertices_xyz=np.array(vertices_xyz_rot, dtype=np.float32),
-        x_sky=np.array(x_sky, dtype=np.float32),
-        y_sky=np.array(y_sky, dtype=np.float32),
-        visible_mask=np.array(vis_mask, dtype=bool),
-        pixel_areas=np.array(pixel_areas, dtype=np.float32),
-        mu=np.array(mu, dtype=np.float32),
+    return Star(
+        tess=tess,
+        theta=theta,
+        phi=phi,
+        x=x,
+        y=y,
+        z=z,
+        visible=vis_mask,
+        intensities=intensities,
+        diameter=diameter,
+        inclination=inclination,
+        orientation=orientation,
+        ld_coeffs=ld_coeffs,
     )
 
 
