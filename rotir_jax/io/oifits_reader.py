@@ -127,19 +127,25 @@ def read_oifits(
     t3phi_err = np.array(all_t3phi_err)
     uv_t3 = np.array(all_uv_t3)  # (nt3*3, 2) - three baselines per triangle
 
-    # Combine all UV coordinates
+    # Combine all UV coordinates and wavelengths
     # For T3, we have 3 baselines per triangle
     # We need to create a unique UV table and index into it
     all_uv = []
-    all_uv.extend(uv_v2.tolist() if len(uv_v2) > 0 else [])
+    all_wl = []
 
-    # For T3, add all three baselines
+    # Add V2 data
+    all_uv.extend(uv_v2.tolist() if len(uv_v2) > 0 else [])
+    all_wl.extend(all_v2_wl if len(all_v2_wl) > 0 else [])
+
+    # For T3, add all three baselines (same wavelength repeated 3 times)
     if len(uv_t3) > 0:
         uv_t3_reshaped = uv_t3.reshape(-1, 3, 2)  # (nt3, 3, 2)
         for i in range(3):
             all_uv.extend(uv_t3_reshaped[:, i, :].tolist())
+            all_wl.extend(all_t3_wl)  # Same wavelength for all 3 baselines
 
     uv_array = np.array(all_uv).T if len(all_uv) > 0 else np.zeros((2, 0))  # (2, nuv)
+    wavelengths = np.array(all_wl) if len(all_wl) > 0 else np.zeros(0)  # (nuv,)
 
     # Create indices
     nv2 = len(v2)
@@ -169,6 +175,7 @@ def read_oifits(
         indx_t3_1=indx_t3_1,
         indx_t3_2=indx_t3_2,
         indx_t3_3=indx_t3_3,
+        wavelengths=wavelengths,
     )
 
     if verbose:

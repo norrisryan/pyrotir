@@ -234,9 +234,22 @@ class OIData:
     indx_t3_2: jnp.ndarray  # (nt3,) int
     indx_t3_3: jnp.ndarray  # (nt3,) int
 
+    # Wavelengths (meters)
+    wavelengths: jnp.ndarray  # (nuv,) wavelength for each UV point
+
     # Metadata
     mean_mjd: float = 0.0
     filename: str = ""
+
+    @property
+    def u(self) -> jnp.ndarray:
+        """U baseline coordinate (east-west) in meters."""
+        return self.uv[0, :]
+
+    @property
+    def v(self) -> jnp.ndarray:
+        """V baseline coordinate (north-south) in meters."""
+        return self.uv[1, :]
 
 
 # ============================================================
