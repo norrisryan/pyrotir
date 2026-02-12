@@ -45,6 +45,7 @@ import sys
 sys.path.append('..')
 from rotir_jax.datatypes import OIData, Tessellation, Star
 from rotir_jax.forward_model.observables import compute_chi2, compute_observables
+from rotir_jax.forward_model.polyft import mod360
 from rotir_jax.regularization.regularizers import apply_regularizers, build_healpix_difference_matrix
 
 
@@ -245,11 +246,21 @@ class StellarImageReconstructor:
             # Update star with new intensities
             star_updated = self._update_star_intensities(x_param)
 
-            # Compute observables
-            model_obs = compute_observables(star_updated, self.oi_data.wavelengths)
+            # Convert star to geometry for forward model
+            geom = star_updated.to_geometry()
 
-            # Compute χ²
-            chi2 = compute_chi2(model_obs, self.oi_data)
+            # Compute observables
+            v2_model, t3amp_model, t3phi_model = compute_observables(
+                star_updated.intensities,
+                geom,
+                self.oi_data
+            )
+
+            # Compute χ² from residuals
+            v2_residual = (v2_model - self.oi_data.v2) / self.oi_data.v2_err
+            t3phi_residual = mod360(t3phi_model - self.oi_data.t3phi) / self.oi_data.t3phi_err
+
+            chi2 = jnp.sum(v2_residual**2) + jnp.sum(t3phi_residual**2)
 
             return chi2
 
