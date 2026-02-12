@@ -245,6 +245,7 @@ class OIData:
         """Dataclass post-initialization for property setup."""
         pass
 
+    # Baseline coordinate properties
     @property
     def u(self) -> jnp.ndarray:
         """U baseline coordinate (east-west) in meters."""
@@ -254,6 +255,17 @@ class OIData:
     def v(self) -> jnp.ndarray:
         """V baseline coordinate (north-south) in meters."""
         return self.uv[1, :]
+
+    # Compatibility aliases for notebook (vis2 -> v2)
+    @property
+    def vis2(self) -> jnp.ndarray:
+        """Alias for v2 (squared visibilities)."""
+        return self.v2
+
+    @property
+    def vis2_err(self) -> jnp.ndarray:
+        """Alias for v2_err (squared visibility errors)."""
+        return self.v2_err
 
 
 # ============================================================
