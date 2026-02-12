@@ -156,19 +156,19 @@ def read_oifits(
     # Create OIData structure
     oi_data = OIData(
         uv=uv_array,
+        nuv=uv_array.shape[1],
         v2=v2,
         v2_err=v2_err,
+        nv2=nv2,
         t3amp=t3amp,
         t3amp_err=t3amp_err,
         t3phi=t3phi,
         t3phi_err=t3phi_err,
+        nt3=nt3,
         indx_v2=indx_v2,
         indx_t3_1=indx_t3_1,
         indx_t3_2=indx_t3_2,
         indx_t3_3=indx_t3_3,
-        nv2=nv2,
-        nt3amp=nt3,
-        nt3phi=nt3,
     )
 
     if verbose:
