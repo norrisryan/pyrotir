@@ -133,6 +133,16 @@ class Tessellation:
     unit_xyz: np.ndarray  # (npix, 5, 3) float32
     unit_spherical: np.ndarray  # (npix, 5, 3) float32
 
+    @property
+    def theta(self) -> np.ndarray:
+        """Colatitude of pixel centres (npix,), range [0, pi]."""
+        return self.unit_spherical[:, 4, 1]
+
+    @property
+    def phi(self) -> np.ndarray:
+        """Longitude of pixel centres (npix,), range [0, 2*pi]."""
+        return self.unit_spherical[:, 4, 2]
+
 
 # ============================================================
 # Stellar geometry (per-epoch, after rotation + projection)
